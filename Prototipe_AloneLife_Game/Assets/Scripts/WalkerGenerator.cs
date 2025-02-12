@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.VFX;
 
 public class WalkerGenerator : MonoBehaviour
 {
@@ -13,6 +12,7 @@ public class WalkerGenerator : MonoBehaviour
         EMPTY
     }
 
+    //Variables
     public Grid[,] gridHandler;
     public List<WalkerObject> Walkers;
     public Tilemap tileMap;
@@ -26,9 +26,6 @@ public class WalkerGenerator : MonoBehaviour
     public float FillPercentage = 0.4f;
     public float WaitTime = 0.05f;
 
-
-
-    // Start is called before the first frame update
     void Start()
     {
         InitializeGrid();
@@ -37,6 +34,7 @@ public class WalkerGenerator : MonoBehaviour
     void InitializeGrid()
     {
         gridHandler = new Grid[MapWidth, MapHeight];
+
         for (int x = 0; x < gridHandler.GetLength(0); x++)
         {
             for (int y = 0; y < gridHandler.GetLength(1); y++)
@@ -47,10 +45,11 @@ public class WalkerGenerator : MonoBehaviour
 
         Walkers = new List<WalkerObject>();
 
-        Vector3Int TileCenter = new Vector3Int(gridHandler.GetLength(0) /2, gridHandler.GetLength(1) /2, 0);
+        Vector3Int TileCenter = new Vector3Int(gridHandler.GetLength(0) / 2, gridHandler.GetLength(1) / 2, 0);
 
         WalkerObject curWalker = new WalkerObject(new Vector2(TileCenter.x, TileCenter.y), GetDirection(), 0.5f);
         gridHandler[TileCenter.x, TileCenter.y] = Grid.FLOOR;
+        tileMap.SetTile(TileCenter, Floor);
         Walkers.Add(curWalker);
 
         TileCount++;
@@ -86,7 +85,7 @@ public class WalkerGenerator : MonoBehaviour
             {
                 Vector3Int curPos = new Vector3Int((int)curWalker.Position.x, (int)curWalker.Position.y, 0);
 
-                if (gridHandler[curPos.x, curPos.y] == Grid.FLOOR)
+                if (gridHandler[curPos.x, curPos.y] != Grid.FLOOR)
                 {
                     tileMap.SetTile(curPos, Floor);
                     TileCount++;
@@ -95,7 +94,7 @@ public class WalkerGenerator : MonoBehaviour
                 }
             }
 
-            //Walker Method
+            //Walker Methods
             ChanceToRemove();
             ChanceToRedirect();
             ChanceToCreate();
@@ -105,10 +104,9 @@ public class WalkerGenerator : MonoBehaviour
             {
                 yield return new WaitForSeconds(WaitTime);
             }
-
-            StartCoroutine(CreateFloors());
         }
 
+        StartCoroutine(CreateWalls());
     }
 
     void ChanceToRemove()
@@ -155,7 +153,7 @@ public class WalkerGenerator : MonoBehaviour
 
     void UpdatePosition()
     {
-        for (int i = 0; i < Walkers.Count; ++i)
+        for (int i = 0; i < Walkers.Count; i++)
         {
             WalkerObject FoundWalker = Walkers[i];
             FoundWalker.Position += FoundWalker.Direction;
@@ -164,7 +162,7 @@ public class WalkerGenerator : MonoBehaviour
             Walkers[i] = FoundWalker;
         }
     }
-    
+
     IEnumerator CreateWalls()
     {
         for (int x = 0; x < gridHandler.GetLength(0) - 1; x++)
@@ -181,7 +179,6 @@ public class WalkerGenerator : MonoBehaviour
                         gridHandler[x + 1, y] = Grid.WALL;
                         hasCreatedWall = true;
                     }
-
                     if (gridHandler[x - 1, y] == Grid.EMPTY)
                     {
                         tileMap.SetTile(new Vector3Int(x - 1, y, 0), Wall);
@@ -209,4 +206,5 @@ public class WalkerGenerator : MonoBehaviour
             }
         }
     }
+
 }
